@@ -1,0 +1,7 @@
+name = "WireTransferProcessManager"
+language = "rust"
+type = "actor"
+
+[actor]
+key_directory = "./.keys"
+claims = ["cosmonic:eventsourcing", "wasmcloud:builtin:logging"]    

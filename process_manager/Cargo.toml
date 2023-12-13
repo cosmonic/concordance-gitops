@@ -1,12 +1,12 @@
 [package]
-name = "bankaccount-aggregate"
+name = "bankaccount-processmanager"
 version = "0.3.0"
 authors = ["Cosmonic Team"]
 edition = "2021"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
-name = "bankaccount_aggregate"
+name = "wiretransfer_processmanager"
 
 [dependencies]
 anyhow = "1.0.40"
@@ -18,7 +18,7 @@ serde = { version = "1.0", features = ["derive"] }
 wasmbus-rpc = "0.14.0"
 concordance-gen = { git = "https://github.com/cosmonic/concordance"}
 wasmcloud-interface-logging = {version = "0.10.0", features = ["sync_macro"]}
-regress = "0.7.1"
+regress = "0.6.0"
 
 [profile.release]
 # Optimize for small code size

@@ -10,9 +10,10 @@ build:
         (cd $dir && wash build); \
     done
 
-version := "0.2.0"
+version := "0.3.0"
 push:
     # Push to GHCR
+    wash push ghcr.io/cosmonic/cosmonic-gitops/wiretransfer_processmanager:{{version}} process_manager/build/wiretransfer_processmanager_s.wasm
     wash push ghcr.io/cosmonic/cosmonic-gitops/bankaccount_projector:{{version}} projector/build/bankaccount_projector_s.wasm
     wash push ghcr.io/cosmonic/cosmonic-gitops/bankaccount_aggregate:{{version}} aggregate/build/bankaccount_aggregate_s.wasm
     wash push ghcr.io/cosmonic/cosmonic-gitops/bankaccount_catalog:{{version}} eventcatalog/actor/build/bankaccountcatalog_s.wasm
