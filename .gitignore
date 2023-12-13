@@ -46,3 +46,6 @@ host_config.json
 
 # rebar lock file
 rebar.lock
+
+# wasm files
+*.wasm

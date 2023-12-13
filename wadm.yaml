@@ -3,14 +3,14 @@ kind: Application
 metadata:
   name: bank-account
   annotations:
-    version: v0.0.1
-    description: "A concordance bank account example"
+    version: v0.3.0
+    description: "The concordance bank account example"
 spec:
   components:
     - name: catalog
       type: actor
       properties:
-        image: 
+        image:
       traits:
         - type: spreadscaler
           properties:
@@ -25,7 +25,7 @@ spec:
       traits:
         - type: spreadscaler
           properties:
-            replicas: 1            
+            replicas: 1
         - type: linkdef
           properties:
             target: concordance
@@ -40,7 +40,7 @@ spec:
     - name: aggregate
       type: actor
       properties:
-        image:  file://./aggregate/build/bankaccount_aggregate_s.wasm
+        image: file://./aggregate/build/bankaccount_aggregate_s.wasm
       traits:
         - type: spreadscaler
           properties:
@@ -53,7 +53,7 @@ spec:
               INTEREST: bankaccount
               NAME: bankaccount
               KEY: accountNumber
-              
+
     - name: processmanager
       type: actor
       properties:
@@ -70,7 +70,7 @@ spec:
               KEY: wireTransferId
               NAME: interbankxfer
               INTEREST: '{"start":"wire_transfer_initiated","advance":["funds_reserved","wire_transfer_succeeded","wire_transfer_failed"],"stop":["funds_committed","funds_released"]}'
-    
+
     - name: concordance
       type: capability
       properties:
