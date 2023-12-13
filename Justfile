@@ -10,7 +10,7 @@ build:
         (cd $dir && wash build); \
     done
 
-version := "0.1.0"
+version := "0.2.0"
 push:
     # Push to GHCR
     wash push ghcr.io/cosmonic/cosmonic-gitops/bankaccount_projector:{{version}} projector/build/bankaccount_projector_s.wasm
