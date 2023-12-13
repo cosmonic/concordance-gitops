@@ -1,6 +1,0 @@
-name = "BankAccountAggregate"
-language = "rust"
-type = "actor"
-
-[actor]
-claims = ["cosmonic:eventsourcing", "wasmcloud:builtin:logging"]

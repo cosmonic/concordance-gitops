@@ -1,0 +1,12 @@
+{
+  "command_type": "wire_funds",
+  "key": "ACCT0001",
+  "data": {
+    "accountNumber": "ACCT0001",
+    "amount": 1000,
+    "customerId": "CUSTBOB",
+    "wireTransactionId": "XFER0001",
+    "targetRoutingNumber": "NA",
+    "targetAccountNumber": "ACCT0002"
+  }
+}
