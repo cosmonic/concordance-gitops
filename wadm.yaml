@@ -3,23 +3,96 @@ kind: Application
 metadata:
   name: bank-account
   annotations:
-    version: v0.0.0
+    version: v0.1.0
     description: "The concordance bank account example"
 spec:
   components:
     - name: catalog
       type: actor
       properties:
-        image: ghcr.io/cosmonic/cosmonic-gitops/bankaccount_catalog:0.0.0
+        image: ghcr.io/cosmonic/cosmonic-gitops/bankaccount_catalog:0.1.0
       traits:
-        - type: spreadscaler
+        - type: daemonscaler
           properties:
             replicas: 3
         - type: linkdef
           properties:
             target: httpserver
+    - name: projector
+      type: actor
+      properties:
+        image: ghcr.io/cosmonic/cosmonic-gitops/bankaccount_projector:0.1.0
+      traits:
+        - type: daemonscaler
+          properties:
+            replicas: 3
+        - type: linkdef
+          properties:
+            target: concordance
+            values:
+              NAME: bankaccount_projector
+              ROLE: projector
+              INTEREST: account_created
+        - type: linkdef
+          properties:
+            target: keyvalue
+
+    - name: aggregate
+      type: actor
+      properties:
+        image: ghcr.io/cosmonic/cosmonic-gitops/bankaccount_aggregate:0.1.0
+      traits:
+        - type: daemonscaler
+          properties:
+            replicas: 3
+        - type: linkdef
+          properties:
+            target: concordance
+            values:
+              ROLE: aggregate
+              INTEREST: bankaccount
+              NAME: bankaccount
+              KEY: accountNumber
+
+    - name: concordance
+      type: capability
+      properties:
+        config:
+          js_domain: cosmonic
+          nats_url: 0.0.0.0:4222
+        contract: cosmonic:eventsourcing
+        image: registry.hub.docker.com/cosmonic/concordance:0.1.0
+      traits:
+        - properties:
+            replicas: 1
+            spread:
+              - name: oncosmonic
+                requirements:
+                  cosmonic_managed: "true"
+          type: spreadscaler
+    - name: keyvalue
+      type: capability
+      properties:
+        image: cosmonic.azurecr.io/builtin_keyvalue:0.2.5
+        contract: wasmcloud:keyvalue
+      traits:
+        - properties:
+            replicas: 1
+            spread:
+              - name: oncosmonic
+                requirements:
+                  cosmonic_managed: "true"
+          type: spreadscaler
     - name: httpserver
       type: capability
       properties:
         image: cosmonic.azurecr.io/httpserver_wormhole:0.6.2
         contract: wasmcloud:httpserver
+      traits:
+        - properties:
+            replicas: 1
+            spread:
+              - name: oncosmonic
+                requirements:
+                  cosmonic_managed: "true"
+          type: spreadscaler

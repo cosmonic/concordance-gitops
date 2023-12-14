@@ -10,7 +10,9 @@ build:
         (cd $dir && wash build); \
     done
 
-version := "0.0.0"
+version := "0.1.0"
 push:
     # Push to GHCR
+    wash push ghcr.io/cosmonic/cosmonic-gitops/bankaccount_projector:{{version}} projector/build/bankaccount_projector_s.wasm
+    wash push ghcr.io/cosmonic/cosmonic-gitops/bankaccount_aggregate:{{version}} aggregate/build/bankaccount_aggregate_s.wasm
     wash push ghcr.io/cosmonic/cosmonic-gitops/bankaccount_catalog:{{version}} eventcatalog/actor/build/bankaccountcatalog_s.wasm
