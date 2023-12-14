@@ -3,14 +3,14 @@ kind: Application
 metadata:
   name: bank-account
   annotations:
-    version: v0.3.0
+    version: v0.0.0
     description: "The concordance bank account example"
 spec:
   components:
     - name: catalog
       type: actor
       properties:
-        image: ghcr.io/cosmonic/cosmonic-gitops/bankaccount_catalog:0.3.0
+        image: ghcr.io/cosmonic/cosmonic-gitops/bankaccount_catalog:0.0.0
       traits:
         - type: spreadscaler
           properties:
@@ -18,70 +18,6 @@ spec:
         - type: linkdef
           properties:
             target: httpserver
-    - name: projector
-      type: actor
-      properties:
-        image: ghcr.io/cosmonic/cosmonic-gitops/bankaccount_projector:0.3.0
-      traits:
-        - type: spreadscaler
-          properties:
-            replicas: 3
-        - type: linkdef
-          properties:
-            target: concordance
-            values:
-              NAME: bankaccount_projector
-              ROLE: projector
-              INTEREST: account_created,funds_deposited,funds_released,funds_reserved,funds_withdrawn,wire_transfer_initiated
-        - type: linkdef
-          properties:
-            target: keyvalue
-
-    - name: aggregate
-      type: actor
-      properties:
-        image: ghcr.io/cosmonic/cosmonic-gitops/bankaccount_aggregate:0.3.0
-      traits:
-        - type: spreadscaler
-          properties:
-            replicas: 3
-        - type: linkdef
-          properties:
-            target: concordance
-            values:
-              ROLE: aggregate
-              INTEREST: bankaccount
-              NAME: bankaccount
-              KEY: accountNumber
-
-    - name: processmanager
-      type: actor
-      properties:
-        image: ghcr.io/cosmonic/cosmonic-gitops/wiretransfer_processmanager:0.3.0
-      traits:
-        - type: spreadscaler
-          properties:
-            replicas: 3
-        - type: linkdef
-          properties:
-            target: concordance
-            values:
-              ROLE: process_manager
-              KEY: wireTransferId
-              NAME: interbankxfer
-              INTEREST: '{"start":"wire_transfer_initiated","advance":["funds_reserved","wire_transfer_succeeded","wire_transfer_failed"],"stop":["funds_committed","funds_released"]}'
-
-    - name: concordance
-      type: capability
-      properties:
-        contract: cosmonic:eventsourcing
-        image: registry.hub.docker.com/cosmonic/concordance:0.1.0
-        link_name: default
-    - name: keyvalue
-      type: capability
-      properties:
-        image: cosmonic.azurecr.io/builtin_keyvalue:0.2.5
-        contract: wasmcloud:keyvalue
     - name: httpserver
       type: capability
       properties:

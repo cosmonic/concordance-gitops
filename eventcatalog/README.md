@@ -17,7 +17,3 @@ npm run build
 cd actor
 wash build
 ```
-
-## All Events
-
-![All Bank Account Events](./all_events.png)
