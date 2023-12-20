@@ -2,7 +2,8 @@
 
 [➡️Click me to clone this repo][new-repository-link]
 
-> [!IMPORTANT] > `cosmonic/concordance-gitops` repository is intended to be used as a [template for you to generate your own version](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template) of the demo project for your own testing.
+> [!IMPORTANT]
+> `cosmonic/concordance-gitops` repository is intended to be used as a [template for you to generate your own version](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template) of the demo project for your own testing.
 >
 > When you create your own repository from the template, it is important to select the option for `Include all branches`, as that is used as part of the initial re-configuration to setup steps for the demo.
 >
