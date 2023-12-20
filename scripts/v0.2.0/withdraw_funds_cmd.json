@@ -1,0 +1,10 @@
+{
+  "command_type": "withdraw_funds",
+  "key": "ACCT0001",
+  "data": {
+    "accountNumber": "ACCT0001",
+    "amount": 1000,
+    "note": "atm withdrawal",
+    "customerId": "CUSTBOB"
+  }
+}

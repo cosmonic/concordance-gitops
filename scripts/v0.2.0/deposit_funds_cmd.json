@@ -1,0 +1,10 @@
+{
+  "command_type": "deposit_funds",
+  "key": "ACCT0001",
+  "data": {
+    "accountNumber": "ACCT0001",
+    "amount": 1000,
+    "note": "cash deposit",
+    "customerId": "CUSTBOB"
+  }
+}
