@@ -1,0 +1,10 @@
+{
+  "command_type": "create_account",
+  "key": "ACCT0002",
+  "data": {
+    "accountNumber": "ACCT0002",
+    "initialBalance": 5000,
+    "minBalance": 0,
+    "customerId": "CUSTALICE"
+  }
+}
