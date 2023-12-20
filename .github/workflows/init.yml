@@ -1,0 +1,74 @@
+name: Initialize the repository
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  TEMPLATE_REPOSITORY: cosmonic/concordance-gitops
+
+jobs:
+  init:
+    # Don't run this in the template repository.
+    if: ${{ github.repository != 'cosmonic/concordance-gitops' }}
+    runs-on: ubuntu-latest
+    permissions:
+      # Give the default GITHUB_TOKEN write permission to commit and push the
+      # added or changed files to the repository.
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: "main"
+
+      - name: Setup GitHub Actions as the commiter
+        run: |
+          git config --local user.name 'github-actions[bot]'
+          git config --local user.email 'github-actions[bot]@users.noreply.github.com'
+
+      # Remove this workflow so it won't run again.
+      - name: Clean up main
+        run: |
+          ./.github/init.sh
+          git add -A
+          git commit -m "Initialize the repository"
+
+      - name: Ensure release branches exist
+        run: |
+          release_branches=$(git branch -r | awk '/release/ { gsub(/origin\//, "", $1); print $1 }')
+          if [ -z "${release_branches}" ]; then
+            git remote add upstream "https://github.com/${TEMPLATE_REPOSITORY}"
+            git fetch upstream
+            upstream_branches=$(git branch -r | awk '/release/ { gsub(/upstream\//, "", $1); print $1 }')
+            for branch_name in $upstream_branches
+            do
+              git checkout --orphan "${branch_name}" "upstream/${branch_name}"
+              git init .
+              git commit --message "Initialize ${upstream_branch}"
+            done
+            git push --branches
+            git remote remove upstream
+          fi
+
+      - name: Setup each release branch for pull requests
+        run: |
+          release_branches=$(git branch -r | awk '/release/ { gsub(/origin\//, "", $1); print $1 }')
+          if [ -z "${release_branches}" ]; then
+            echo "No release branches."
+            exit 1
+          fi
+          rebase_from='main'
+          for branch_name in $release_branches
+          do
+            git checkout "${branch_name}"
+            git rebase -X theirs "${rebase_from}"
+            ./.github/init.sh
+            git add -A
+            git commit --amend --no-edit
+            rebase_from=$branch_name
+          done
+          git checkout main
+          git push --all -f
