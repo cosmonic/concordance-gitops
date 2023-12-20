@@ -4,7 +4,7 @@ use crate::*;
 
 use serde::{Deserialize, Serialize};
 use wasmbus_rpc::actor::prelude::*;
-use wasmcloud_interface_keyvalue::{KeyValue, KeyValueSender, SetRequest};
+use wasmcloud_interface_keyvalue::{GetResponse, KeyValue, KeyValueSender, SetRequest};
 use wasmcloud_interface_logging::{debug, error};
 
 // Note an invariant: the last() element in a ledger's effective_balance field is
@@ -35,6 +35,84 @@ pub async fn initialize_account(event: AccountCreated) -> Result<()> {
     Ok(())
 }
 
+/// Records a deposit by adding a `LedgerLine` to the end of the previously stored
+/// ledger and recording the new balance.
+pub async fn record_funds_deposited(event: FundsDeposited) -> Result<()> {
+    debug!("Recording deposit in account {}", event.account_number);
+    let account_number = event.account_number.to_string();
+    let ctx = Context::default();
+
+    let kv = KeyValueSender::new();
+    let ledger_key = format!("ledger.{account_number}");
+
+    let new_ledger = get(&ctx, &kv, &ledger_key).await.map(|ledger_raw| {
+        serde_json::from_str::<AccountLedger>(&ledger_raw).map(|mut ledger| {
+            let last_balance = ledger.ledger_lines.last().unwrap().effective_balance;
+            ledger.ledger_lines.push(LedgerLine {
+                amount: event.amount as u32,
+                tx_type: TransactionType::Deposit,
+                effective_balance: last_balance + event.amount as u32,
+            });
+            ledger
+        })
+    });
+    if let Some(Ok(ledger)) = new_ledger {
+        let new_balance = ledger
+            .ledger_lines
+            .last()
+            .map(|l| l.effective_balance)
+            .unwrap_or(0);
+        set_ledger(&ctx, &kv, ledger_key, ledger).await;
+        let balance_key = format!("balance.{account_number}");
+        set(&ctx, &kv, balance_key, new_balance.to_string()).await;
+    } else {
+        error!("Unable to save projection for deposit on account {account_number}");
+    }
+
+    Ok(())
+}
+
+/// Records a withdrawal from an account by adding a withdrawal ledger item to the
+/// ledger and recording the new balance
+pub async fn record_funds_withdrawn(event: FundsWithdrawn) -> Result<()> {
+    debug!("Recording withdrawal in account {}", event.account_number);
+    let account_number = event.account_number.to_string();
+
+    let kv = KeyValueSender::new();
+    let ledger_key = format!("ledger.{account_number}");
+
+    let ctx = Context::default();
+
+    // Note:the aggregate would prevent the creation of an event that would violate
+    // business rules, so we can safely do the subtraction here without any guards
+
+    let new_ledger = get(&ctx, &kv, &ledger_key).await.map(|ledger_raw| {
+        serde_json::from_str::<AccountLedger>(&ledger_raw).map(|mut ledger| {
+            let last_balance = ledger.ledger_lines.last().unwrap().effective_balance;
+            ledger.ledger_lines.push(LedgerLine {
+                amount: event.amount as u32,
+                tx_type: TransactionType::Withdrawal,
+                effective_balance: last_balance - event.amount as u32,
+            });
+            ledger
+        })
+    });
+    if let Some(Ok(ledger)) = new_ledger {
+        let new_balance = ledger
+            .ledger_lines
+            .last()
+            .map(|l| l.effective_balance)
+            .unwrap_or(0);
+        set_ledger(&ctx, &kv, ledger_key, ledger).await;
+        let balance_key = format!("balance.{account_number}");
+        set(&ctx, &kv, balance_key, new_balance.to_string()).await;
+    } else {
+        error!("Unable to save projection for withdrawal on account {account_number}");
+    }
+
+    Ok(())
+}
+
 async fn set(ctx: &Context, kv: &KeyValueSender<WasmHost>, key: String, value: String) {
     if let Err(e) = kv
         .set(
@@ -48,6 +126,29 @@ async fn set(ctx: &Context, kv: &KeyValueSender<WasmHost>, key: String, value: S
         .await
     {
         error!("Failed to set {key} in store: {e}");
+    }
+}
+
+async fn set_ledger(
+    ctx: &Context,
+    kv: &KeyValueSender<WasmHost>,
+    key: String,
+    ledger: AccountLedger,
+) {
+    set(ctx, kv, key, serde_json::to_string(&ledger).unwrap()).await
+}
+
+async fn get(ctx: &Context, kv: &KeyValueSender<WasmHost>, key: &str) -> Option<String> {
+    match kv.get(ctx, key).await {
+        Ok(GetResponse {
+            value: v,
+            exists: true,
+        }) => Some(v),
+        Ok(GetResponse { exists: false, .. }) => None,
+        Err(e) => {
+            error!("Failed to get {key} from store: {e}");
+            None
+        }
     }
 }
 

@@ -1,6 +1,6 @@
 ---
-name: AccountCreated
-summary: "Indicates the creation of a new bank account"
+name: FundsDeposited
+summary: "Indicates funds have been deposited into an account"
 version: 0.0.1
 consumers:
     - 'Bank Account Aggregate'
@@ -12,7 +12,7 @@ tags:
 externalLinks: []
 badges: []
 ---
-Indicates that a bank account has been created. As with all events, this is immutable truth.
+Indicates that funds have been deposited into an account. 
 
 <Mermaid />
 

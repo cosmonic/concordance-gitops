@@ -3,14 +3,14 @@ kind: Application
 metadata:
   name: bank-account
   annotations:
-    version: v0.1.0
+    version: v0.2.0
     description: "The concordance bank account example"
 spec:
   components:
     - name: catalog
       type: actor
       properties:
-        image: ghcr.io/cosmonic/cosmonic-gitops/bankaccount_catalog:0.1.0
+        image: ghcr.io/cosmonic/cosmonic-gitops/bankaccount_catalog:0.2.0
       traits:
         - type: daemonscaler
           properties:
@@ -21,7 +21,7 @@ spec:
     - name: projector
       type: actor
       properties:
-        image: ghcr.io/cosmonic/cosmonic-gitops/bankaccount_projector:0.1.0
+        image: ghcr.io/cosmonic/cosmonic-gitops/bankaccount_projector:0.2.0
       traits:
         - type: daemonscaler
           properties:
@@ -32,7 +32,7 @@ spec:
             values:
               NAME: bankaccount_projector
               ROLE: projector
-              INTEREST: account_created
+              INTEREST: account_created,funds_deposited,funds_withdrawn
         - type: linkdef
           properties:
             target: keyvalue
@@ -40,7 +40,7 @@ spec:
     - name: aggregate
       type: actor
       properties:
-        image: ghcr.io/cosmonic/cosmonic-gitops/bankaccount_aggregate:0.1.0
+        image: ghcr.io/cosmonic/cosmonic-gitops/bankaccount_aggregate:0.2.0
       traits:
         - type: daemonscaler
           properties:
