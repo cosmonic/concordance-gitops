@@ -1,9 +1,10 @@
 ---
-name: FundsWithdrawn
-summary: "Indicates a successful withdrawal of funds"
+name: FundsReserved
+summary: "Indicates funds have been placed on hold for a wire transfer"
 version: 0.0.1
 consumers:
     - 'Bank Account Aggregate'
+    - 'Wire Transfer Process Manager'
     - 'Bank Account Projector'
 producers:
     - 'Bank Account Aggregate'
@@ -12,7 +13,7 @@ tags:
 externalLinks: []
 badges: []
 ---
-Indicates funds have been withdrawn from the account
+Indicates that the funds to be used in a wire transfer have been reserved/placed on hold.
 
 <Mermaid />
 

@@ -1,7 +1,7 @@
 {
-    "$id": "https://cosmonic.com/concordance/bankaccount/WithdrawFunds.json",
+    "$id": "https://cosmonic.com/concordance/bankaccount/ReserveFunds.json",
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "title": "WithdrawFunds",
+    "title": "ReserveFunds",
     "type": "object",
     "properties": {
       "accountNumber": {
@@ -10,17 +10,17 @@
       },
       "amount": {
         "type": "integer",
-        "description": "The amount to withdraw"
-      },
-      "note": {
-        "type": "string",
-        "description": "An optional note to be associated with the withdrawal"
-      },
+        "description": "The amount to reserve"
+      },    
       "customerId": {
         "type": "string",
         "description": "The ID of the customer performing the withdrawal"
-      }     
+      },
+      "wireTransferId": {
+        "type": "string",
+        "description": "A unique ID identifying the wire transfer transaction"
+      }
     },
-    "required": ["accountNumber", "amount", "customerId"]
+    "required": ["accountNumber", "amount", "customerId", "wireTransferId"]
   }
   

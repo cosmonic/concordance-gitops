@@ -1,9 +1,10 @@
 ---
-name: FundsDeposited
-summary: "Indicates funds have been deposited into an account"
+name: FundsReleased
+summary: "Indicates that reserved funds were released"
 version: 0.0.1
 consumers:
     - 'Bank Account Aggregate'
+    - 'Wire Transfer Process Manager'
     - 'Bank Account Projector'
 producers:
     - 'Bank Account Aggregate'
@@ -12,7 +13,7 @@ tags:
 externalLinks: []
 badges: []
 ---
-Indicates that funds have been deposited into an account. 
+Indicates that held funds were released as part of a failed or canceled transfer.
 
 <Mermaid />
 

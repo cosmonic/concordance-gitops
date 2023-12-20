@@ -3,14 +3,14 @@ kind: Application
 metadata:
   name: bank-account
   annotations:
-    version: v0.2.0
+    version: v0.3.0
     description: "The concordance bank account example"
 spec:
   components:
     - name: catalog
       type: actor
       properties:
-        image: ghcr.io/cosmonic/cosmonic-gitops/bankaccount_catalog:0.2.0
+        image: ghcr.io/cosmonic/cosmonic-gitops/bankaccount_catalog:0.3.0
       traits:
         - type: daemonscaler
           properties:
@@ -21,7 +21,7 @@ spec:
     - name: projector
       type: actor
       properties:
-        image: ghcr.io/cosmonic/cosmonic-gitops/bankaccount_projector:0.2.0
+        image: ghcr.io/cosmonic/cosmonic-gitops/bankaccount_projector:0.3.0
       traits:
         - type: daemonscaler
           properties:
@@ -32,7 +32,7 @@ spec:
             values:
               NAME: bankaccount_projector
               ROLE: projector
-              INTEREST: account_created,funds_deposited,funds_withdrawn
+              INTEREST: account_created,funds_deposited,funds_released,funds_reserved,funds_withdrawn,wire_transfer_initiated
         - type: linkdef
           properties:
             target: keyvalue
@@ -40,7 +40,7 @@ spec:
     - name: aggregate
       type: actor
       properties:
-        image: ghcr.io/cosmonic/cosmonic-gitops/bankaccount_aggregate:0.2.0
+        image: ghcr.io/cosmonic/cosmonic-gitops/bankaccount_aggregate:0.3.0
       traits:
         - type: daemonscaler
           properties:
@@ -53,6 +53,23 @@ spec:
               INTEREST: bankaccount
               NAME: bankaccount
               KEY: accountNumber
+
+    - name: processmanager
+      type: actor
+      properties:
+        image: ghcr.io/cosmonic/cosmonic-gitops/wiretransfer_processmanager:0.3.0
+      traits:
+        - type: daemonscaler
+          properties:
+            replicas: 3
+        - type: linkdef
+          properties:
+            target: concordance
+            values:
+              ROLE: process_manager
+              KEY: wireTransferId
+              NAME: interbankxfer
+              INTEREST: '{"start":"wire_transfer_initiated","advance":["funds_reserved","wire_transfer_succeeded","wire_transfer_failed"],"stop":["funds_committed","funds_released"]}'
 
     - name: concordance
       type: capability

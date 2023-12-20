@@ -37,6 +37,60 @@ pub(crate) fn apply_funds_deposited(
     Ok(StateAck::ok(Some(state)))
 }
 
+pub(crate) fn apply_funds_released(
+    input: FundsReleased,
+    state: Option<BankAccountAggregateState>,
+) -> Result<StateAck> {
+    let Some(state) = state else {
+        error!(
+            "Rejecting funds released event. Account {} does not exist.",
+            input.account_number
+        );
+        return Ok(StateAck::error(
+            "Account does not exist",
+            None::<BankAccountAggregateState>,
+        ));
+    };
+    let state = state.release_funds(&input.wire_transfer_id);
+    Ok(StateAck::ok(Some(state)))
+}
+
+pub(crate) fn apply_funds_committed(
+    input: FundsCommitted,
+    state: Option<BankAccountAggregateState>,
+) -> Result<StateAck> {
+    let Some(state) = state else {
+        error!(
+            "Rejecting funds committed event. Account {} does not exist.",
+            input.account_number
+        );
+        return Ok(StateAck::error(
+            "Account does not exist",
+            None::<BankAccountAggregateState>,
+        ));
+    };
+    let state = state.commit_funds(&input.wire_transfer_id);
+    Ok(StateAck::ok(Some(state)))
+}
+
+pub(crate) fn apply_funds_reserved(
+    input: FundsReserved,
+    state: Option<BankAccountAggregateState>,
+) -> Result<StateAck> {
+    let Some(state) = state else {
+        error!(
+            "Rejecting funds reserved event. Account {} does not exist.",
+            input.account_number
+        );
+        return Ok(StateAck::error(
+            "Account does not exist",
+            None::<BankAccountAggregateState>,
+        ));
+    };
+    let state = state.reserve_funds(&input.wire_transfer_id, input.amount as u32);
+    Ok(StateAck::ok(Some(state)))
+}
+
 pub(crate) fn apply_funds_withdrawn(
     input: FundsWithdrawn,
     state: Option<BankAccountAggregateState>,
@@ -53,4 +107,13 @@ pub(crate) fn apply_funds_withdrawn(
     };
     let state = state.withdraw(input.amount as u32);
     Ok(StateAck::ok(Some(state)))
+}
+
+pub(crate) fn apply_wire_transfer_initiated(
+    _input: WireTransferInitiated,
+    state: Option<BankAccountAggregateState>,
+) -> Result<StateAck> {
+    // We don't currently change internal state because of this. The first time a wire transfer
+    // impacts the the account is when funds are reserved (by the process manager)
+    Ok(StateAck::ok(state))
 }

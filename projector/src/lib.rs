@@ -19,7 +19,20 @@ impl BankAccountProjector for BankAccountProjectorImpl {
         store::record_funds_deposited(input).await
     }
 
+    async fn handle_funds_reserved(&self, input: FundsReserved) -> Result<()> {
+        store::record_funds_reserved(input).await
+    }
+
     async fn handle_funds_withdrawn(&self, input: FundsWithdrawn) -> Result<()> {
         store::record_funds_withdrawn(input).await
     }
+
+    async fn handle_funds_released(&self, input: FundsReleased) -> Result<()> {
+        store::record_funds_released(input).await
+    }
+
+    async fn handle_wire_transfer_initiated(&self, _input: WireTransferInitiated) -> Result<()> {
+        Ok(())
+    }
 }
+

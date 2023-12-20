@@ -72,6 +72,90 @@ pub async fn record_funds_deposited(event: FundsDeposited) -> Result<()> {
     Ok(())
 }
 
+/// Records a reservation of funds by adding a funds reserved transaction to the end of the
+/// ledger and recording the newly adjusted balance
+pub async fn record_funds_reserved(event: FundsReserved) -> Result<()> {
+    debug!(
+        "Recording funds reservation (interbank) in account {}",
+        event.account_number
+    );
+    let account_number = event.account_number.to_string();
+    let ctx = Context::default();
+
+    let kv = KeyValueSender::new();
+    let ledger_key = format!("ledger.{account_number}");
+
+    let new_ledger = get(&ctx, &kv, &ledger_key).await.map(|ledger_raw| {
+        serde_json::from_str::<AccountLedger>(&ledger_raw).map(|mut ledger| {
+            let last_balance = ledger.ledger_lines.last().unwrap().effective_balance;
+            ledger
+                .holds
+                .insert(event.wire_transfer_id, event.amount as u32);
+            ledger.ledger_lines.push(LedgerLine {
+                amount: event.amount as u32,
+                tx_type: TransactionType::FundsReserve,
+                effective_balance: last_balance - event.amount as u32,
+            });
+            ledger
+        })
+    });
+    if let Some(Ok(ledger)) = new_ledger {
+        let new_balance = ledger
+            .ledger_lines
+            .last()
+            .map(|l| l.effective_balance)
+            .unwrap_or(0);
+        set_ledger(&ctx, &kv, ledger_key, ledger).await;
+        let balance_key = format!("balance.{account_number}");
+        set(&ctx, &kv, balance_key, new_balance.to_string()).await;
+    } else {
+        error!("Unable to save projection for withdrawal on account {account_number}");
+    }
+
+    Ok(())
+}
+
+// Releases previously reserved funds by adding a funds released transaction to the end
+/// of the ledger and recording the updated balance
+pub async fn record_funds_released(event: FundsReleased) -> Result<()> {
+    debug!(
+        "Recording funds release (interbank) in account {}",
+        event.account_number
+    );
+    let account_number = event.account_number.to_string();
+
+    let kv = KeyValueSender::new();
+    let ledger_key = format!("ledger.{account_number}");
+    let ctx = Context::default();
+
+    let new_ledger = get(&ctx, &kv, &ledger_key).await.map(|ledger_raw| {
+        serde_json::from_str::<AccountLedger>(&ledger_raw).map(|mut ledger| {
+            let last_balance = ledger.ledger_lines.last().unwrap().effective_balance;
+            let orig_hold = ledger.holds.remove(&event.wire_transfer_id);
+            ledger.ledger_lines.push(LedgerLine {
+                amount: orig_hold.unwrap_or_default(),
+                tx_type: TransactionType::FundsRelease,
+                effective_balance: last_balance + orig_hold.unwrap_or_default(),
+            });
+            ledger
+        })
+    });
+    if let Some(Ok(ledger)) = new_ledger {
+        let new_balance = ledger
+            .ledger_lines
+            .last()
+            .map(|l| l.effective_balance)
+            .unwrap_or(0);
+        set_ledger(&ctx, &kv, ledger_key, ledger).await;
+        let balance_key = format!("balance.{account_number}");
+        set(&ctx, &kv, balance_key, new_balance.to_string()).await;
+    } else {
+        error!("Unable to save projection for withdrawal on account {account_number}");
+    }
+
+    Ok(())
+}
+
 /// Records a withdrawal from an account by adding a withdrawal ledger item to the
 /// ledger and recording the new balance
 pub async fn record_funds_withdrawn(event: FundsWithdrawn) -> Result<()> {
