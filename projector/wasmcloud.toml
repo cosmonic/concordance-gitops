@@ -1,0 +1,7 @@
+name = "BankAccountProjector"
+language = "rust"
+type = "actor"
+
+[actor]
+key_directory = "./.keys"
+claims = ["cosmonic:eventsourcing", "wasmcloud:keyvalue", "wasmcloud:builtin:logging"]    
