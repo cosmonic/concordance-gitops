@@ -23,3 +23,11 @@ spec:
       properties:
         image: cosmonic.azurecr.io/httpserver_wormhole:0.6.2
         contract: wasmcloud:httpserver
+      traits:
+        - properties:
+            replicas: 1
+            spread:
+              - name: oncosmonic
+                requirements:
+                  cosmonic_managed: "true"
+          type: spreadscaler
